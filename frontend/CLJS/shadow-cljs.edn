@@ -1,0 +1,26 @@
+;; shadow-cljs configuration
+{:deps
+ {:aliases [:cljs]}
+
+ :dev-http
+ {8020 "public"}
+
+ :builds
+ {:app
+  {:target :browser
+   :output-dir "public/js"
+   :asset-path "/js"
+   :modules {:main
+             {:init-fn tailwind.app/init}}
+   :devtools {:http-root "public/"
+              :http-port 8888
+              :loader-mode :script
+              :reload-strategy :full
+              :preloads [devtools.preload
+                         day8.re-frame-10x.preload]}
+   :external-config {:devtools/config {:features-to-install    [:formatters :hints]
+                                       :fn-symbol              "F"
+                                       :print-config-overrides true}}
+   :compiler-options {:closure-defines
+                      {re-frame.trace.trace-enabled?        true
+                       day8.re-frame.tracing.trace-enabled? true}}}}}
