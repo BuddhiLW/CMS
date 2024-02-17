@@ -5,8 +5,8 @@ The goal is to build a one db per service patterned, microservices-composed, `CM
 ## DOING (70%): Login Page
 
 Current looks:
-[./imgs/auth0-login.pgn](./imgs/auth0-login.pgn)
+[./imgs/auth0-login.png](./imgs/auth0-login.png)
 
 Main page:
-[./imgs/main.pgn](./imgs/main.pgn)
+[./imgs/main.png](./imgs/main.png)
 
