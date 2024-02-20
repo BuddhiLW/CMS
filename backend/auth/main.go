@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/BuddhiLW/go-CMS-backend/auth/db"
 	"github.com/BuddhiLW/go-CMS-backend/auth/router"
 	"github.com/joho/godotenv"
 )
@@ -19,4 +20,7 @@ func main() {
 	if err := http.ListenAndServe("0.0.0.0:3010", rtr); err != nil {
 		log.Fatalf("There was an error with the http server: %v", err)
 	}
+
+	conn := db.ConnectDB()
+	db.Migration(conn)
 }
