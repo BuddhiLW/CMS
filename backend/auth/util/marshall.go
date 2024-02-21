@@ -5,9 +5,9 @@ import (
 )
 
 // Mashall: User [Go] -> JSON
-func (u *User) Mashall() string {
+// func (u *User) Mashall() string {
 
-}
+// }
 
 // Unmashall: JSON -> User [Go]
 func (u *User) Unmashall(jsonByteData []byte) {

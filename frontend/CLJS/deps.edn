@@ -9,7 +9,9 @@
         binaryage/devtools {:mvn/version "1.0.7"}
         cider/cider-nrepl {:mvn/version "0.45.0"}
         cider/piggieback {:mvn/version "0.5.3"}
-        reagent/reagent {:mvn/version "1.2.0"}}
+        reagent/reagent {:mvn/version "1.2.0"}
+        cljs-ajax/cljs-ajax {:mvn/version "0.8.4"}
+        day8.re-frame/http-fx {:mvn/version "0.2.4"}}
 
  :aliases
  {:cljs

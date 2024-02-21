@@ -3,6 +3,7 @@
    [goog.dom :as gdom]
    [re-frame.core :as rf]
    [reagent.dom :as dom]
+   [day8.re-frame.http-fx]
    [tailwind.auth0.config :as config]
    [tailwind.auth0.events]
    [tailwind.subs]

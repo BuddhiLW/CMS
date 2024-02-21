@@ -20,7 +20,10 @@
 (defn handle-profile-response [error profile]
   "Handle the response for Auth0 profile request"
   (let [profile-clj (js->clj profile :keywordize-keys true)]
-    (re-frame/dispatch [:auth0/set-user-profile profile-clj])))
+
+   (re-frame/dispatch [:auth0/set-user-profile profile-clj])))
+     
+   
 
 (defn on-authenticated
   "Function called by auth0 lock on authentication"
@@ -30,5 +33,6 @@
     (re-frame/dispatch [:auth0/set-auth-result auth-result-clj])
     (.getUserInfo lock access-token handle-profile-response)))
 
-(.on lock "authenticated" on-authenticated)
 
+
+(.on lock "authenticated" on-authenticated)

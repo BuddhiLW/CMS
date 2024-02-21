@@ -16,3 +16,16 @@
  :user/user-dropdown?
  (fn [db _]
    (:user-dropdown? db)))
+
+(rf/reg-sub
+ :user/data-loaded?
+ (fn [db _]
+  (let [profile     (get-in [:user :profile] db)
+        auth-result (get-in [:user :auth-result] db)]
+    (js/console.log {:profile profile :auth-result auth-result})
+    #_(if (and (seq profile)
+               (seq auth-result))
+        (do (js/console.log {:profile profile :auth-result auth-result})
+            true)
+        (do (js/console.log "not sequable")
+            false)))))

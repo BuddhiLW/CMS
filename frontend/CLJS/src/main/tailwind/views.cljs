@@ -3,7 +3,8 @@
    [re-frame.core :as rf]
    [tailwind.auth0.lock :as auth0]
    [tailwind.auth0.events]
-   [reagent.core :as reagent]))
+   [reagent.core :as reagent]
+   [reagent.core :as r]))
 
 (defn button [text on-click]
   [:button
@@ -79,6 +80,11 @@
 
 (defn authenticated
   []
+  ;; (r/create-class {:component-did-mount
+  ;;                  (when (rf/subscribe [:user/data-loaded?]
+  ;;                         (rf/dispatch [:back-end/create-user])))
+  ;;                  :reagent-render
+  ;;                  (fn [] [:div#auth0-lock])})
   (fn []
    [:div {:class "h-screen flex overflow-hidden bg-white"}
     [:div {:class "hidden lg:flex lg:flex-shrink-0"}

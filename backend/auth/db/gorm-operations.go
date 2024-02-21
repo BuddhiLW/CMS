@@ -3,7 +3,7 @@ package db
 import "github.com/BuddhiLW/go-CMS-backend/auth/util"
 
 // Create
-func CreateUser(user *util.User) error {
+func CreateUser(user *util.User) {
 	// Connect to the database
 	conn := ConnectDB()
 
@@ -16,7 +16,6 @@ func CreateUser(user *util.User) error {
 	// if err.Error != nil {
 	// 	return err.Error
 	// }
-	// return nil
 }
 
 // Read

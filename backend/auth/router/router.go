@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/BuddhiLW/go-CMS-backend/auth/db"
@@ -137,6 +138,8 @@ func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+
+	log.Println(r.Body)
 
 	user := util.CreateNewUser()
 	err := json.NewDecoder(r.Body).Decode(user)
