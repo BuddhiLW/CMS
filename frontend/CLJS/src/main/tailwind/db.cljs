@@ -5,4 +5,5 @@
           :auth-result {}}
    :name "CMS Auth Service"
    :auth? true
+   :user-created? false
    :user-dropdown? true})

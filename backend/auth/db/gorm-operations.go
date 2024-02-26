@@ -12,7 +12,7 @@ func CreateUser(user *util.User) {
 	// user.Unmashall(jsonData)
 
 	// Create the user in the database
-	conn.Create(&user)
+	conn.Create(user)
 	// if err.Error != nil {
 	// 	return err.Error
 	// }

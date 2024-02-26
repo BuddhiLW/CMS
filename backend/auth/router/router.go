@@ -2,7 +2,7 @@ package router
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/BuddhiLW/go-CMS-backend/auth/db"
@@ -26,11 +26,10 @@ var EnsuredRoutes = ensuredRoutes{
 
 func handlerGetUser(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers.
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8020")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
-
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("Access-Control-Allow-Credentials", "true")
+	w.Header().Add("Access-Control-Allow-Origin", "*") // *
+	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
+	w.Header().Add("Content-Type", "application/json")
 	if r.URL.Path != "/get-user" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -58,11 +57,11 @@ func handlerGetUser(w http.ResponseWriter, r *http.Request) {
 
 func handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers.
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8020")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	w.Header().Add("Access-Control-Allow-Credentials", "true")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("Content-Type", "application/json")
 	if r.URL.Path != "/update-user" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -97,11 +96,11 @@ func handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers.
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8020")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	w.Header().Add("Access-Control-Allow-Credentials", "true")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("Content-Type", "application/json")
 	if r.URL.Path != "/delete-user" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -129,20 +128,23 @@ func handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers.
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8020")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	// w.Header().Add("Access-Control-Allow-Credentials", "true")
+	// w.Header().Add("Access-Control-Allow-Origin", "*") // *
+	// w.Header().Add("Access-Control-Allow-Headers", "Authorization")
 
-	w.Header().Set("Content-Type", "application/json")
-	if r.URL.Path != "/create-user" {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
+	// w.Header().Add("Content-Type", "application/json")
+	// if r.URL.Path != "/create-user" {
+	// 	w.WriteHeader(http.StatusNotFound)
+	// 	return
+	// }
 
-	log.Println(r.Body)
+	// log.Println("Request Body:", r.Body)
+	// log.Println(r.Body.Read([]byte{}))
 
 	user := util.CreateNewUser()
 	err := json.NewDecoder(r.Body).Decode(user)
+
+	// log.Println("User:", user)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -170,13 +172,15 @@ func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 // New sets up our routes and returns a *http.ServeMux.
 func New() *http.ServeMux {
-	router := http.NewServeMux()
+	mux := http.NewServeMux()
 
 	for path, handler := range EnsuredRoutes {
-		router.Handle("/v1"+path, handler)
+		fmt.Println(path, handler)
+		mux.Handle("/v1"+path, handler)
 	}
 
-	return router
+	// router := cors.Default().Handler(mux)
+	return mux
 }
 
 // // This route is always accessible.
@@ -191,7 +195,7 @@ func New() *http.ServeMux {
 // 	http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 // 		// CORS Headers.
 // 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-// 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8020")
+// 		w.Header().Set("Access-Control-Allow-Origin", "*")
 // 		w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 
 // 		w.Header().Set("Content-Type", "application/json")
