@@ -68,6 +68,7 @@ func handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := util.CreateNewUser()
+
 	err := json.NewDecoder(r.Body).Decode(user)
 
 	if err != nil {
@@ -127,24 +128,23 @@ func handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
-	// CORS Headers.
-	// w.Header().Add("Access-Control-Allow-Credentials", "true")
-	// w.Header().Add("Access-Control-Allow-Origin", "*") // *
-	// w.Header().Add("Access-Control-Allow-Headers", "Authorization")
-
-	// w.Header().Add("Content-Type", "application/json")
-	// if r.URL.Path != "/create-user" {
-	// 	w.WriteHeader(http.StatusNotFound)
-	// 	return
-	// }
-
-	// log.Println("Request Body:", r.Body)
-	// log.Println(r.Body.Read([]byte{}))
-
 	user := util.CreateNewUser()
-	err := json.NewDecoder(r.Body).Decode(user)
+	// Create Profile and AuthResult
+	profile := util.CreateNewProfile()
+	authResults := util.CreateNewAuthResult()
 
-	// log.Println("User:", user)
+	// Unmarshall the JSON data profile and authResults
+	incJson := util.IncJson{}
+	err := json.NewDecoder(r.Body).Decode(&incJson)
+
+	// fill the profile and authResults with the unmarshalled data
+	profile = &incJson.Profile
+	authResults = &incJson.AuthResult
+
+	// User Struct: fill the user with the profile and authResults
+	user.Profile = *profile
+	user.AuthResults = append(user.AuthResults, *authResults)
+	user.Sub = profile.Sub
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
