@@ -1,14 +1,23 @@
 package router
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/BuddhiLW/go-CMS-backend/auth/db"
 	"github.com/BuddhiLW/go-CMS-backend/auth/middleware"
 	"github.com/BuddhiLW/go-CMS-backend/auth/util"
 )
+
+type IssuedToken struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+}
 
 type ensuredRoutes map[string]http.Handler
 type Message struct {
@@ -24,12 +33,42 @@ var EnsuredRoutes = ensuredRoutes{
 	"/delete-user": middleware.EnsureValidToken()(http.HandlerFunc(handlerDeleteUser)),
 }
 
+func handlerIssuedToken(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Credentials", "false")
+	w.Header().Add("Content-Type", "application/json")
+	if r.URL.Path != "/v1/issue-token" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// Call auth0 to get the token
+	token, err := callAuth0TokenAPI()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// Response:
+	// Marshall data in response.
+	var message []byte
+	message, err = json.Marshal(
+		Message{
+			Text: "Token issued successfully.",
+			Code: 200,
+			Data: token,
+		})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+
+	w.Write(message)
+}
+
 func handlerGetUser(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers.
-	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Origin", "*") // *
-	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
-	w.Header().Add("Content-Type", "application/json")
 	if r.URL.Path != "/get-user" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -128,8 +167,28 @@ func handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
-	user := util.CreateNewUser()
-	// Create Profile and AuthResult
+
+	// Inspect if user exists in the database
+	rawUrl := r.URL
+	log.Println("Inspection - r.URL: ", rawUrl)
+	user := db.GetUser(r.URL.Query().Get("sub"))
+	log.Println("Inspection: ", user)
+	log.Println("Inspection - user.Sub: ", user.Sub)
+
+	if user.Sub != "" {
+		log.Println("User already exists. Return Ok and move on.")
+		w.WriteHeader(http.StatusOK)
+		message, _ := json.Marshal(Message{
+			Text: "User already exists.",
+			Code: 204,
+			Data: user,
+		})
+		w.Write(message)
+		return
+	}
+
+	// Case user does not exist, proceed to create the user
+	user = util.CreateNewUser()
 	profile := util.CreateNewProfile()
 	authResults := util.CreateNewAuthResult()
 
@@ -158,10 +217,11 @@ func handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	// Response:
 	// Created the new user, and marshall data in response.
 	var message []byte
-	message, err = json.Marshal(Message{Text: "User created successfully.",
-		Code: 200,
-		Data: user,
-	})
+	message, err = json.Marshal(
+		Message{Text: "User created successfully.",
+			Code: 200,
+			Data: user,
+		})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -175,56 +235,58 @@ func New() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	for path, handler := range EnsuredRoutes {
-		fmt.Println(path, handler)
+		// fmt.Println(path, handler)
 		mux.Handle("/v1"+path, handler)
 	}
 
-	// router := cors.Default().Handler(mux)
+	// fmt.Println("/v1/issue-token", http.HandlerFunc(handlerIssuedToken))
+	mux.Handle("/v1/issue-token", http.HandlerFunc(handlerIssuedToken))
+
 	return mux
 }
 
-// // This route is always accessible.
-// router.Handle("/api/public", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write([]byte(`{"message":"Hello from a public endpoint! You don't need to be authenticated to see this."}`))
-// }))
+type Auth0TokenCall struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	Audience     string `json:"audience"`
+	GrantType    string `json:"grant_type"`
+}
 
-// // This route is only accessible if the user has a valid access_token.
-// router.Handle("/api/private", middleware.EnsureValidToken()(
-// 	http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// CORS Headers.
-// 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-// 		w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+func callAuth0TokenAPI() (token IssuedToken, err error) {
+	// log.Println("Calling Auth0 to get the token")
+	url := "https://" + os.Getenv("AUTH0_DOMAIN") + "/oauth/token"
+	auth0TokenCall := Auth0TokenCall{
+		ClientID:     os.Getenv("AUTH0_CLIENT_ID"),
+		ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
+		Audience:     os.Getenv("AUTH0_AUDIENCE"),
+		GrantType:    "client_credentials",
+	}
 
-// 		w.Header().Set("Content-Type", "application/json")
-// 		w.WriteHeader(http.StatusOK)
-// 		w.Write([]byte(`{"message":"Hello from a private endpoint! You need to be authenticated to see this."}`))
-// 	}),
-// ))
+	body, err := json.Marshal(auth0TokenCall)
 
-// // This route is only accessible if the user has a
-// // valid access_token with the read:messages scope.
-// router.Handle("/api/private-scoped", middleware.EnsureValidToken()(
-// 	http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// CORS Headers.
-// 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-// 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-// 		w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	if err != nil {
+		return IssuedToken{}, err
+	}
 
-// 		w.Header().Set("Content-Type", "application/json")
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	req.Header.Add("content-type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return IssuedToken{}, err
+	}
+	defer res.Body.Close()
 
-// 		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+	out, err := io.ReadAll(res.Body)
 
-// 		claims := token.CustomClaims.(*middleware.CustomClaims)
-// 		if !claims.HasScope("read:messages") {
-// 			w.WriteHeader(http.StatusForbidden)
-// 			w.Write([]byte(`{"message":"Insufficient scope."}`))
-// 			return
-// 		}
+	if err != nil {
+		return IssuedToken{}, err
+	}
 
-// 		w.WriteHeader(http.StatusOK)
-// 		w.Write([]byte(`{"message":"Hello from a private endpoint! You need to be authenticated to see this."}`))
-// 	}),
-// ))
+	tokenResp := IssuedToken{}
+	err = json.Unmarshal(out, &tokenResp)
+	if err != nil {
+		return IssuedToken{}, err
+	}
+
+	return tokenResp, nil
+}

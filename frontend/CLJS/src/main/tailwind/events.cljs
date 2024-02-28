@@ -42,3 +42,18 @@
  :debug/js-console-log
  (fn [_ _]
    (js/console.log "an event")))
+
+(rf/reg-event-db
+ :ui/clear-error
+ (fn [db [_ key]]
+  (update-in db [:errors] dissoc key)))
+
+
+(rf/reg-event-db
+ :ui/clear-info
+ (fn [db [_ key]]
+  (update-in db [:infos] dissoc key)))
+
+(comment
+  (let [err {:errors {:ui "ui"}}]
+    (update-in err [:errors] assoc :ux "ux")))

@@ -11,8 +11,6 @@
    [tailwind.events]
    [tailwind.views :as views]))
 
-
-;; [views/authenticated]
 (defn- app
   []
   (let [user-name @(rf/subscribe [:auth0/user-name])]

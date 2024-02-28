@@ -16,27 +16,29 @@ type AuthResult struct {
 	AccessToken    string `json:"accessToken" gorm:"primaryKey"`
 	ExpiresIn      int    `json:"expiresIn"`
 	RefreshToken   string `json:"refreshToken"`
-	gorm.Model
+	// gorm.Model
 }
 
 type Profile struct {
-	GivenName     string    `json:"given_name"`
-	Email         string    `json:"email"`
-	Locale        string    `json:"locale"`
-	Sub           string    `json:"sub" gorm:"primaryKey"`
-	Name          string    `json:"name"`
-	Nickname      string    `json:"nickname"`
-	EmailVerified bool      `json:"email_verified"`
-	FamilyName    string    `json:"family_name"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	Picture       string    `json:"picture"`
-	gorm.Model
+	GivenName     string `json:"given_name"`
+	Email         string `json:"email"`
+	Locale        string `json:"locale"`
+	Sub           string `json:"sub" gorm:"primaryKey"`
+	Name          string `json:"name"`
+	Nickname      string `json:"nickname"`
+	EmailVerified bool   `json:"email_verified"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	// ID            uint      `json:"id" gorm:"autoIncrement"`
+	CreatedAt time.Time //`json:"created_at"`
+	UpdatedAt time.Time //`json:"updated_at"`
+	// gorm.Model
 }
 
 type User struct {
 	Sub         string       `json:"sub"`
 	Profile     Profile      `gorm:"foreignKey:Sub"`
-	AuthResults []AuthResult `gorm:"foreignKey:AccessToken;references:Sub"`
+	AuthResults []AuthResult `gorm:"foreignKey:AccessToken"`
 	gorm.Model
 }
 
@@ -54,7 +56,9 @@ type IncJson struct {
 // State       string `json:"state"`
 
 func CreateNewUser() *User {
-	return &User{}
+	profile := CreateNewProfile()
+	authResult := CreateNewAuthResult()
+	return &User{Profile: *profile, AuthResults: []AuthResult{*authResult}}
 }
 
 func CreateNewProfile() *Profile {

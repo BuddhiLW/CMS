@@ -27,7 +27,8 @@ func GetUser(sub string) *util.User {
 	user := util.CreateNewUser()
 
 	// Get the user from the database
-	conn.First(&user, "sub = ?", sub)
+	conn.Preload("AuthResult").Preload("Profile").Model(util.User{}).Where("sub = ?", sub).First(&user)
+	// (value interface{}) .First(&user, "sub = ?", sub)
 
 	return user
 }

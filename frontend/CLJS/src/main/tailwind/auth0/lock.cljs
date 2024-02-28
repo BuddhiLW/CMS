@@ -25,8 +25,10 @@
   "Handle the response for Auth0 profile request"
   (let [profile-clj (js->clj profile :keywordize-keys true)]
    (re-frame/dispatch [:auth0/set-user-profile profile-clj])
-   (re-frame/dispatch [:back-end/create-user {:auth-result auth-result-clj
-                                              :profile profile-clj}])))
+   (re-frame/dispatch-sync [:auth0/issue-token {:auth-result auth-result-clj
+                                                :profile profile-clj}])))
+   ;; (re-frame/dispatch [:back-end/create-user {:auth-result auth-result-clj
+   ;;                                            :profile profile-clj}])))
 
     ;; profile-clj))
 
