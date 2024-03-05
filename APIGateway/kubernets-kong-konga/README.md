@@ -6,6 +6,7 @@
 - docker
 - kind (Kubernetes in Docker)
 
+### Setup
 ```bash
 minikube start
 ```
@@ -23,6 +24,8 @@ kind create cluster -n cms
 kubectl cluster-info --context kind-cms
 kubectl config use-context kind-cms
 ```
+
+### API Gateway specific initial setup
 
 We can take some approaches here. Namely, we will choose `Gloo` API Gateway.
 
@@ -42,11 +45,16 @@ kubectl rollout status deployment/gloo-proxy-http -n gloo-system
 kubectl port-forward deployment/gloo-proxy-http -n gloo-system 8080:8080 &
 ```
 
+### Gateway API Route configuration
+
 ``` bash
 kubectl apply -f https://raw.githubusercontent.com/solo-io/solo-blog/main/gateway-api-tutorial/05-workload-svcs.yaml
 kubectl get pods -n my-workload
 kubectl apply -f https://raw.githubusercontent.com/solo-io/solo-blog/main/gateway-api-tutorial/06-workload-route.yaml
 ```
+
+
+### Test the Gateway 
 
 Finally, hit the endpoint configured:
 
